@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHECKPOINT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS ПЕРЕМЕННЫЕ */
+        :root {
+            --bg: #050505;
+            --accent: #00ff41; /* Неоново-зеленый */
+            --accent-glow: rgba(0, 255, 65, 0.5);
+            --text: #ffffff;
+            --sub-text: #888;
+            --grid: rgba(0, 255, 65, 0.05);
+            --panel-bg: rgba(255, 255, 255, 0.03);
+            --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #f0f0f0;
+            --accent: #2ecc71;
+            --accent-glow: rgba(46, 204, 113, 0.3);
+            --text: #1a1a1a;
+            --sub-text: #555;
+            --grid: rgba(0, 0, 0, 0.05);
+            --panel-bg: rgba(0, 0, 0, 0.05);
+        }
+
+        /* ОСНОВНОЙ СТИЛЬ */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; cursor:crosshair; }
+        body { background-color: var(--bg); color: var(--text); overflow: hidden; height: 100vh; transition: background 0.8s ease; }
+        
+        /* CRT ЭФФЕКТ (улучшенный) */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            z-index: 1000; background-size: 100% 3px, 3px 100%; pointer-events: none; opacity: 0.8;
+        }
+
+        .btn {
+            background: var(--bg);
+            border: 2px outset var(--text);
+            color: var(--text);
+            padding: 8px 15px;
+            font-family: 'Press Start 2P';
+            font-size: 0.6rem;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--accent);
+            box-shadow: 0 0 5px var(--accent-glow);
+            transition: all 0.05s linear; /* Мгновенный отклик */
+            margin: 5px;
+        }
+
+        .btn:active {
+            border: 2px inset var(--accent);
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: translateY(1px);
+        }
+
+        .btn-lang-them {
+            background: var(--bg);
+            border: 2px outset var(--text);
+            color: var(--text);
+            padding: 8px 15px;
+            font-family: 'Press Start 2P';
+            font-size: 0.6rem;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--accent);
+            box-shadow: 0 0 5px var(--accent-glow);
+            transition: all 0.05s linear; /* Мгновенный отклик */
+            margin: 5px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            left: 1670px;
+            margin-top: -15px;
+        }
+
+        .btn-lang-them:active {
+            border: 2px inset var(--accent);
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: translateY(1px);
+        }
+
+        /* СЕТКА (Grid) */
+        .grid-layer {
+            position: fixed; width: 200%; height: 200%; background-image: linear-gradient(var(--grid) 1px, transparent 1px), 
+                              linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: -1; transform: rotate(15deg); animation: gridMove 60s linear infinite;
+        }
+        @keyframes gridMove {
+            from { transform: rotate(15deg) translate(0, 0); }
+            to { transform: rotate(15deg) translate(-1000px, -1000px); }
+        }
+
+        /* НАВИГАЦИЯ */
+        .nav-sidebar { position: fixed; left: 30px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+        .nav-item { width: 14px; height: 14px; border: 2px solid var(--accent); border-radius: 3px; transition: var(--transition); position: relative; }
+        .nav-item::after { content: attr(data-label); position: absolute; left: 30px; top: -2px; font-size: 10px; opacity: 0; white-space: nowrap; color: var(--accent); text-transform: uppercase; font-family: 'Press Start 2P'; }
+        .nav-item:hover::after, .nav-item.active::after { opacity: 1; }
+        .nav-item.active { background: var(--accent); box-shadow: 0 0 15px var(--accent); transform: scale(1.2) rotate(45deg); }
+
+        /* КОНТЕЙНЕР СЕКЦИЙ */
+        main { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        section { display: none; width: 80%; max-width: 1200px; animation: slideIn 0.8s cubic-bezier(0.19, 1, 0.22, 1); text-align: center; }
+        section.active { display: block; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        /* ЗАГОЛОВКИ И ШРИФТЫ */
+        h1 { font-family: 'Press Start 2P', cursive; font-size: 3.5rem; margin-bottom: 20px; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+        .pixel-label { font-family: 'Press Start 2P'; font-size: 0.7rem; letter-spacing: 2px; color: var(--sub-text); margin-bottom: 40px; margin-top: 25px;}
+        .big-text { font-size: 4rem; font-family: 'Press Start 2P'; color: var(--text); margin: 20px 0; }
+        .big-text.small { font-size: 1.5rem; }
+
+        /* КАРТОЧКИ И ГРИДЫ */
+        .widget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: var(--panel-bg); border: 1px solid var(--grid); padding: 25px; border-radius: 8px; backdrop-filter: blur(10px); transition: var(--transition); text-align: left; }
+        .card:hover { border-color: var(--accent); transform: translateY(-5px); background: rgba(255, 255, 255, 0.05); }
+
+        /* ЭЛЕМЕНТЫ ФОРМЫ */
+        input, select {
+            background: none; border: 1px solid var(--accent); color: var(--text); padding: 8px; margin: 5px;
+            font-family: 'JetBrains Mono'; font-size: 1rem; transition: var(--transition);
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* ДИЗАЙН СЕКУНДОМЕРА */
+        #sw-display { font-size: 2.5rem; text-align: center; margin-bottom: 10px; }
+        #laps-list { max-height: 150px; overflow-y: auto; list-style: none; margin-top: 10px; padding-right: 10px; }
+        #laps-list li { border-bottom: 1px solid var(--grid); padding: 5px 0; font-size: 0.9rem; display: flex; justify-content: space-between; }
+
+        /* ДИЗАЙН ВРЕМЕНИ */
+        .world-time-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .world-time-card p:first-child { font-family: 'Press Start 2P'; font-size: 0.6rem; color: var(--accent); }
+
+        /* ДИЗАЙН ФИНАНСОВ */
+        .rate-value { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
+        .rate-change { font-size: 0.9rem; }
+        .rate-change.up { color: #00ff00; }
+        .rate-change.down { color: #ff0000; }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        /* Улучшение скроллбара */
+        #news-feed::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #news-feed::-webkit-scrollbar-track {
+            background: var(--panel-bg);
+        }
+
+        #news-feed::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        /* Адаптивность для мобильных */
+        @media (max-width: 768px) {
+            .top-bar, .bottom-bar {
+                padding: 10px 15px;
+            }
+            
+            .btn {
+                padding: 6px 10px;
+                font-size: 0.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .world-time-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        /* СТИЛИ ПОИСКА И ФИЛЬТРОВ */
+        .search-container {
+            animation: slideIn 0.5s ease;
+        }
+
+        .filter-btn, .weather-filter-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--grid);
+            color: var(--text);
+            padding: 6px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover, .weather-filter-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active, .weather-filter-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* СЕТКА ДЛЯ БОЛЬШОГО КОЛИЧЕСТВА ЭЛЕМЕНТОВ */
+        .world-time-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        /* СКРОЛЛБАРЫ */
+        .world-time-grid::-webkit-scrollbar,
+        #rates-container::-webkit-scrollbar,
+        #weather-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .world-time-grid::-webkit-scrollbar-track,
+        #rates-container::-webkit-scrollbar-track,
+        #weather-container::-webkit-scrollbar-track {
+            background: rgba(0, 255, 65, 0.05);
+            border-radius: 4px;
+        }
+
+        .world-time-grid::-webkit-scrollbar-thumb,
+        #rates-container::-webkit-scrollbar-thumb,
+        #weather-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        /* КАРТОЧКИ С АНИМАЦИЕЙ */
+        .rate-card, .weather-card, .time-card {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ИНДИКАТОРЫ ПОИСКА */
+        .search-info {
+            font-size: 0.8rem;
+            color: var(--sub-text);
+            padding: 10px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="grid-layer"></div>
+
+    <div class="top-bar">
+        <div id="top-time" class="pixel-label" style="margin-bottom: 0;">00:00:00</div>
+        <div>
+            <button class="btn-lang-them btn" onclick="toggleLang()">LANG: RU</button>
+            <button class="btn-lang-them" onclick="toggleTheme()">THEME</button>
+        </div>
+    </div>
+
+    <nav class="nav-sidebar">
+        <div class="nav-item active" data-target="home" data-label="Home"></div>
+        <div class="nav-item" data-target="clock" data-label="World Time"></div>
+        <div class="nav-item" data-target="tools" data-label="Tools"></div>
+        <div class="nav-item" data-target="finance" data-label="Market"></div>
+        <div class="nav-item" data-target="weather" data-label="Meteo"></div>
+        <div class="nav-item" data-target="news" data-label="News Feed"></div>
+    </nav>
+
+    <main>
+        <section id="home" class="active">
+            <h1 id="t-welcome">CHECKPOINT</h1>
+            <p class="pixel-label" id="t-subtitle">СИСТЕМА УПРАВЛЕНИЯ ВЕРСИЯ 2.0</p>
+            <div class="widget-grid">
+                <div class="card" style="text-align: center;">
+                    <p id="t-stats" class="pixel-label" style="margin-bottom: 5px;">СТАТУС СИСТЕМЫ</p>
+                    <p style="color: var(--accent); font-size: 2rem;">ONLINE</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <p id="t-loc" class="pixel-label" style="margin-bottom: 5px;">МОЯ ЛОКАЦИЯ</p>
+                    <p id="geo-city" style="color: var(--accent); font-size: 2rem;">ОПРЕДЕЛЕНИЕ...</p>
+                </div>
+            </div>
+            <button class="btn" style="margin-top: 50px;" onclick="switchTab('clock')" id="t-start">ИНИЦИИРОВАТЬ</button>
+        </section>
+
+        <section id="clock">
+            <h1 id="t-world-h">МИРОВОЕ ВРЕМЯ</h1>
+            <p class="pixel-label" id="t-local-time">МЕСТНОЕ ВРЕМЯ</p>
+            <div class="big-text" id="main-clock">00:00:00</div>
+
+            <!-- ПОИСК ДОБАВЛЯЕМ ЗДЕСЬ -->
+            <div class="search-container" style="margin: 20px auto; max-width: 600px;">
+                <input type="text" id="time-search" 
+                    placeholder="Поиск города или часового пояса..." 
+                    style="width: 100%; padding: 12px; background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text);">
+                <div style="font-size: 0.7rem; color: var(--sub-text); margin-top: 5px;">
+                    🔍 Искать по названию города или коду часового пояса
+                </div>
+            </div>
+            
+            <p class="pixel-label" id="t-world-list">ВРЕМЯ В КЛЮЧЕВЫХ ТОЧКАХ</p>
+            <div class="widget-grid world-time-grid" id="world-time-container">
+                </div>
+        </section>
+
+        <section id="tools">
+            <h1 id="t-tools-h">ИНСТРУМЕНТЫ</h1>
+            <div class="widget-grid">
+                <div class="card">
+                    <p id="t-sw" class="pixel-label">СЕКУНДОМЕР PRO</p>
+                    <div id="sw-display">00:00:00.00</div>
+                    <button class="btn" onclick="stopwatch.toggle()" id="sw-btn">START</button>
+                    <button class="btn" onclick="stopwatch.lap()" id="sw-lap-btn">КРУГ</button>
+                    <button class="btn" onclick="stopwatch.reset()">СБРОС</button>
+                    <ul id="laps-list"></ul>
+                </div>
+
+                <div class="card">
+                    <p id="t-tm" class="pixel-label">НАСТРАИВАЕМЫЙ ТАЙМЕР</p>
+                    <div id="tm-display" class="big-text small" style="margin: 5px 0;">00:00:00:00</div>
+                    <div style="display: flex; justify-content: space-around; margin-bottom: 15px;">
+                        <input type="number" id="tm-days" min="0" value="0" placeholder="Дни" style="width: 70px;">
+                        <input type="number" id="tm-hours" min="0" max="23" value="0" placeholder="Часы" style="width: 70px;">
+                        <input type="number" id="tm-mins" min="0" max="59" value="5" placeholder="Мин" style="width: 70px;">
+                        <input type="number" id="tm-secs" min="0" max="59" value="0" placeholder="Сек" style="width: 70px;">
+                    </div>
+                    <button class="btn" onclick="timer.start()" id="tm-btn">СТАРТ</button>
+                    <button class="btn" onclick="timer.pause()">ПАУЗА</button>
+                    <button class="btn" onclick="timer.reset()">СБРОС</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="finance">
+            <h1 id="t-fin-h">ГЛОБАЛЬНЫЕ РЫНКИ</h1>
+            <p class="pixel-label" id="t-fin-sub">АКЦИИ, КРИПТОВАЛЮТЫ И СЫРЬЕ В РЕАЛЬНОМ ВРЕМЕНИ</p>
+
+            <!-- ПОИСК И ФИЛЬТРЫ -->
+            <div class="search-container" style="margin: 20px auto; max-width: 800px;">
+                <input type="text" id="finance-search" 
+                    placeholder="Поиск: BTC, AAPL, EUR/USD, золото..." 
+                    style="width: 100%; padding: 12px; background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text);">
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <button class="filter-btn active" data-filter="all">ВСЕ</button>
+                    <button class="filter-btn" data-filter="crypto">КРИПТО</button>
+                    <button class="filter-btn" data-filter="stock">АКЦИИ</button>
+                    <button class="filter-btn" data-filter="forex">ВАЛЮТЫ</button>
+                    <button class="filter-btn" data-filter="commodity">СЫРЬЕ</button>
+                    <button class="filter-btn" data-filter="index">ИНДЕКСЫ</button>
+                </div>
+            </div>
+
+            <div class="widget-grid" id="rates-container">
+                </div>
+        </section>
+
+        <section id="weather">
+            <h1 id="t-weather-h">МЕТЕОЦЕНТР</h1>
+            <p class="pixel-label" id="t-weather-sub">ПОГОДА В ОСНОВНЫХ МЕГАПОЛИСАХ</p>
+
+            <!-- ПОИСК МЕТЕО -->
+            <div class="search-container" style="margin: 20px auto; max-width: 600px;">
+                <input type="text" id="weather-search" 
+                    placeholder="Поиск города или страны..." 
+                    style="width: 100%; padding: 12px; background: var(--panel-bg); border: 1px solid var(--accent); color: var(--text);">
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <button class="weather-filter-btn active" data-weather-filter="all">ВСЕ</button>
+                    <button class="weather-filter-btn" data-weather-filter="sunny">☀️ Солнечно</button>
+                    <button class="weather-filter-btn" data-weather-filter="cloudy">☁️ Облачно</button>
+                    <button class="weather-filter-btn" data-weather-filter="rainy">🌧️ Дождь</button>
+                    <button class="weather-filter-btn" data-weather-filter="snowy">❄️ Снег</button>
+                    <button class="weather-filter-btn" data-weather-filter="stormy">⛈️ Гроза</button>
+                </div>
+            </div>
+
+            <div class="widget-grid" id="weather-container">
+                </div>
+        </section>
+
+        <section id="news">
+            <h1 id="t-news-h">ИНФОРМАЦИОННЫЙ ПОТОК</h1>
+            <p class="pixel-label" id="t-news-sub">АКТУАЛЬНЫЕ МИРОВЫЕ НОВОСТИ</p>
+            <div id="news-feed" style="text-align: left; max-height: 400px; overflow-y: auto; padding: 10px;">
+                </div>
+        </section>
+    </main>
+
+    <div class="bottom-bar">
+        <div id="music-visualizer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+        <button class="btn" onclick="audioPlayer.toggle()" id="t-music">PLAY MUSIC</button>
+    </div>
+
+    <audio id="bg-audio" loop src="./2b52b40e2a3d9f6.mp3"></audio>
+
+    <script>
+        // --- ДАННЫЕ ЛОКАЛИЗАЦИИ ---
+        const i18n = {
+            ru: {
+                welcome: "CHECKPOINT", subtitle: "СИСТЕМА УПРАВЛЕНИЯ ВЕРСИЯ 2.0", start: "ИНИЦИИРОВАТЬ",
+                stats: "СТАТУС СИСТЕМЫ", loc: "МОЯ ЛОКАЦИЯ", world_h: "МИРОВОЕ ВРЕМЯ",
+                local_time: "МЕСТНОЕ ВРЕМЯ", world_list: "ВРЕМЯ В КЛЮЧЕВЫХ ТОЧКАХ",
+                tools_h: "ИНСТРУМЕНТЫ", sw: "СЕКУНДОМЕР PRO", tm: "НАСТРАИВАЕМЫЙ ТАЙМЕР",
+                fin_h: "ГЛОБАЛЬНЫЕ РЫНКИ", fin_sub: "АКЦИИ, КРИПТОВАЛЮТЫ И СЫРЬЕ В РЕАЛЬНОМ ВРЕМЕНИ",
+                weather_h: "МЕТЕОЦЕНТР", weather_sub: "ПОГОДА В ОСНОВНЫХ МЕГАПОЛИСАХ",
+                news_h: "ИНФОРМАЦИОННЫЙ ПОТОК", news_sub: "АКТУАЛЬНЫЕ МИРОВЫЕ НОВОСТИ",
+                music: "PLAY MUSIC",
+                time_search: "Поиск города или часового пояса...",
+                time_search_hint: "🔍 Искать по названию города или коду часового пояса",
+                finance_search: "Поиск: BTC, AAPL, EUR/USD, золото...",
+                weather_search: "Поиск города или страны...",
+                filter_all: "ВСЕ",
+                filter_crypto: "КРИПТО",
+                filter_stock: "АКЦИИ",
+                filter_forex: "ВАЛЮТЫ",
+                filter_commodity: "СЫРЬЕ",
+                filter_index: "ИНДЕКСЫ",
+                weather_filter_all: "ВСЕ",
+                weather_filter_sunny: "☀️ Солнечно",
+                weather_filter_cloudy: "☁️ Облачно",
+                weather_filter_rainy: "🌧️ Дождь",
+                weather_filter_snowy: "❄️ Снег",
+                weather_filter_stormy: "⛈️ Гроза"
+            },
+            en: {
+                welcome: "CHECKPOINT", subtitle: "CONTROL SYSTEM VERSION 2.0", start: "INITIATE",
+                stats: "SYSTEM STATUS", loc: "MY LOCATION", world_h: "WORLD CLOCK",
+                local_time: "LOCAL TIME", world_list: "KEY ZONE TIMES",
+                tools_h: "TOOLS", sw: "STOPWATCH PRO", tm: "CUSTOM TIMER",
+                fin_h: "GLOBAL MARKETS", fin_sub: "STOCKS, CRYPTO & COMMODITIES IN REAL-TIME",
+                weather_h: "METEO CENTER", weather_sub: "WEATHER IN MAJOR CITIES",
+                news_h: "INFORMATION FEED", news_sub: "CURRENT WORLD NEWS",
+                music: "PLAY MUSIC",
+                time_search: "Search city or timezone...",
+                time_search_hint: "🔍 Search by city name or timezone code",
+                finance_search: "Search: BTC, AAPL, EUR/USD, gold...",
+                weather_search: "Search city or country...",
+                filter_all: "ALL",
+                filter_crypto: "CRYPTO",
+                filter_stock: "STOCKS",
+                filter_forex: "FOREX",
+                filter_commodity: "COMMODITIES",
+                filter_index: "INDEXES",
+                weather_filter_all: "ALL",
+                weather_filter_sunny: "☀️ Sunny",
+                weather_filter_cloudy: "☁️ Cloudy",
+                weather_filter_rainy: "🌧️ Rainy",
+                weather_filter_snowy: "❄️ Snowy",
+                weather_filter_stormy: "⛈️ Stormy"
+            }
+        };
+
+        let currentLang = 'ru';
+
+        // --- УПРАВЛЕНИЕ ВКЛАДКАМИ (переименовал с 'time' на 'clock') ---
+        function switchTab(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelector(`[data-target="${id}"]`).classList.add('active');
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => switchTab(item.dataset.target));
+        });
+
+        // --- ЛОКАЛИЗАЦИЯ ---
+        function applyLocalization() {
+            const langData = i18n[currentLang];
+            document.getElementById('t-welcome').innerText = langData.welcome;
+            document.getElementById('t-subtitle').innerText = langData.subtitle;
+            document.getElementById('t-start').innerText = langData.start;
+            document.getElementById('t-stats').innerText = langData.stats;
+            document.getElementById('t-loc').innerText = langData.loc;
+            document.getElementById('t-world-h').innerText = langData.world_h;
+            document.getElementById('t-local-time').innerText = langData.local_time;
+            document.getElementById('t-world-list').innerText = langData.world_list;
+            document.getElementById('t-tools-h').innerText = langData.tools_h;
+            document.getElementById('t-sw').innerText = langData.sw;
+            document.getElementById('t-tm').innerText = langData.tm;
+            document.getElementById('t-fin-h').innerText = langData.fin_h;
+            document.getElementById('t-fin-sub').innerText = langData.fin_sub;
+            document.getElementById('t-weather-h').innerText = langData.weather_h;
+            document.getElementById('t-weather-sub').innerText = langData.weather_sub;
+            document.getElementById('t-news-h').innerText = langData.news_h;
+            document.getElementById('t-news-sub').innerText = langData.news_sub;
+            document.getElementById('t-music').innerText = langData.music;
+
+            document.querySelector('.top-bar .btn:first-child').innerText = `LANG: ${currentLang.toUpperCase()}`;
+            // Новые поля поиска
+            const timeSearch = document.getElementById('time-search');
+            const financeSearch = document.getElementById('finance-search');
+            const weatherSearch = document.getElementById('weather-search');
+            
+            if (timeSearch) timeSearch.placeholder = langData.time_search;
+            if (financeSearch) financeSearch.placeholder = langData.finance_search;
+            if (weatherSearch) weatherSearch.placeholder = langData.weather_search;
+            
+            // Обновляем подсказки
+            const timeHint = document.querySelector('#time-search + div');
+            if (timeHint) timeHint.innerHTML = langData.time_search_hint;
+            
+            // Обновляем кнопки фильтров
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const filter = btn.dataset.filter;
+                if (langData[`filter_${filter}`]) {
+                    btn.textContent = langData[`filter_${filter}`];
+                }
+            });
+            
+            document.querySelectorAll('.weather-filter-btn').forEach(btn => {
+                const filter = btn.dataset.weatherFilter;
+                if (langData[`weather_filter_${filter}`]) {
+                    btn.textContent = langData[`weather_filter_${filter}`];
+                }
+            });
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            applyLocalization();
+        }
+        applyLocalization();
+
+        // --- ЧАСЫ И МИРОВОЕ ВРЕМЯ (API) ---
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            document.getElementById('main-clock').innerText = timeStr;
+            document.getElementById('top-time').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+
+        // --- МИРОВОЕ ВРЕМЯ (ОСНОВНОЙ ЭКРАН - 6 городов) ---
+        async function updateWorldTime() {
+            const container = document.getElementById('world-time-container');
+            if (!container) return;
+            
+            const cities = [
+                { name: 'МОСКВА', tz: 'Europe/Moscow', apiName: 'Europe/Moscow' },
+                { name: 'ЛОНДОН', tz: 'Europe/London', apiName: 'Europe/London' },
+                { name: 'НЬЮ ЙОРК', tz: 'America/New_York', apiName: 'America/New_York' },
+                { name: 'ТОКИО', tz: 'Asia/Tokyo', apiName: 'Asia/Tokyo' },
+                { name: 'СИДНЕЙ', tz: 'Australia/Sydney', apiName: 'Australia/Sydney' },
+                { name: 'ПЕКИН', tz: 'Asia/Shanghai', apiName: 'Asia/Shanghai' }
+            ];
+            
+            container.innerHTML = '<div class="search-info">Загрузка времени...</div>';
+            
+            let html = '';
+            let loaded = 0;
+            
+            for (const city of cities) {
+                try {
+                    // ПРОБУЕМ ПЕРВЫЙ API: timezonedb.com (работает в РФ)
+                    let timeStr = '';
+                    let offsetStr = '';
+                    
+                    try {
+                        // Используем публичный прокси для timezonedb.com
+                        // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`http://api.timezonedb.com/v2.1/get-time-zone?key=87HQH2WMAOI3&format=json&by=zone&zone=${city.apiName}`)}`;
+                        const proxyUrl = `https://smartapp-code.sberdevices.ru/tools/api/now?tz=${city.apiName}`
+                        // Вместо реального ключа используем демо-режим (для теста)
+                        // const response = await fetch(`https://api.timezonedb.com/v2.1/get-time-zone?key=87HQH2WMAOI3&format=json&by=zone&zone=${city.apiName}`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.status === 'OK') {
+                                const date = new Date(data.formatted);
+                                timeStr = date.toLocaleTimeString('ru-RU', {
+                                    hour12: false,
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                });
+                                offsetStr = `UTC${data.gmtOffset >= 0 ? '+' : ''}${data.gmtOffset / 3600}`;
+                            }
+                        }
+                    } catch (e) { /* Если первый API не сработал */ }
+                    
+                    // ЕСЛИ ПЕРВЫЙ API НЕ СРАБОТАЛ - используем браузерное время как fallback
+                    if (!timeStr) {
+                        timeStr = new Date().toLocaleTimeString('ru-RU', {
+                            timeZone: city.tz,
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        offsetStr = city.tz;
+                    }
+                    
+                    html += `
+                        <div class="card world-time-card">
+                            <p class="pixel-label">${city.name}</p>
+                            <p class="big-text small" style="margin: 5px 0; color: var(--accent);">${timeStr}</p>
+                            <p style="font-size: 0.7rem; color: var(--sub-text);">${offsetStr}</p>
+                        </div>
+                    `;
+                    
+                    loaded++;
+                    
+                    // Обновляем контейнер по мере загрузки
+                    if (loaded % 2 === 0) {
+                        container.innerHTML = html;
+                    }
+                    
+                } catch (error) {
+                    console.error(`Ошибка времени для ${city.name}:`, error);
+                    // Если совсем всё упало - показываем хотя бы название города
+                    html += `
+                        <div class="card world-time-card">
+                            <p class="pixel-label">${city.name}</p>
+                            <p style="color: var(--sub-text); font-size: 0.9rem;">Время недоступно</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Запускаем сразу и обновляем каждую секунду
+        updateWorldTime();
+        setInterval(updateWorldTime, 1000);
+
+
+        // ВКЛАДКА "ФИНАНСЫ" - ИСПРАВЛЕННЫЙ API
+        async function setupFinanceSearch() {
+            const searchInput = document.getElementById('finance-search');
+            const container = document.getElementById('rates-container');
+            
+            if (!searchInput || !container) return;
+            
+            // Правильные API (работают в РФ, не требуют ключа)
+            const APIs = {
+                // Криптовалюты - CoinGecko (основной) + Binance (резервный)
+                crypto: [
+                    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1',
+                    'https://api.binance.com/api/v3/ticker/24hr'
+                ],
+                // Валюты - ЦБ РФ + Open Exchange Rates (резервный)
+                forex: [
+                    'https://www.cbr-xml-daily.ru/daily_json.js',
+                    'https://open.er-api.com/v6/latest/USD'
+                ]
+            };
+            
+            let financeData = [];
+            let loading = false;
+            
+            // ФОРМАТИРОВАНИЕ ЧИСЕЛ КАК НА СКРИНШОТЕ ($2,03 вместо $2.03)
+            function formatPrice(price) {
+                if (typeof price !== 'number') return price;
+                
+                // Для маленьких цен (меньше 1$) показываем больше знаков
+                if (price < 1) {
+                    return price.toFixed(price < 0.01 ? 6 : 4);
+                }
+                // Для средних цен (1-1000$) показываем 2 знака
+                else if (price < 1000) {
+                    return price.toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+                // Для больших цен показываем без копеек
+                else {
+                    return price.toLocaleString('ru-RU', {
+                        maximumFractionDigits: 0
+                    });
+                }
+            }
+            
+            // ПОЛУЧЕНИЕ ЦВЕТА ДЛЯ ИКОНОК КРИПТО
+            function getCryptoColor(symbol) {
+                const colors = {
+                    'BTC': '#f7931a',    // Оранжевый
+                    'ETH': '#627eea',    // Синий
+                    'XRP': '#00aae4',    // Голубой
+                    'SOL': '#00ffa3',    // Неоново-зеленый
+                    'ADA': '#0033ad',    // Синий
+                    'DOGE': '#c2a633',   // Золотистый
+                    'DOT': '#e6007a',    // Розовый
+                    'BNB': '#f0b90b',    // Желтый
+                    'USDT': '#26a17b',   // Зеленый
+                    'USDC': '#2775ca',   // Синий
+                    'LINK': '#2a5ada',   // Синий
+                    'LTC': '#bfbbbb',    // Серебряный
+                    'AVAX': '#e84142',   // Красный
+                    'XLM': '#000000',    // Черный
+                    'ATOM': '#2e3148',   // Темно-синий
+                    'FIL': '#0090ff',    // Голубой
+                    'ALGO': '#000000',    // Черный
+                    'VET': '#15bdff',    // Голубой
+                    'TRX': '#ff060a',    // Красный
+                    'ETC': '#328332'     // Зеленый
+                };
+                return colors[symbol.toUpperCase()] || '#00ff41';
+            }
+            
+            // ЗАГРУЗКА КРИПТОВАЛЮТ
+            async function loadCryptocurrencies() {
+                try {
+                    console.log('Загрузка криптовалют...');
+                    
+                    // Пробуем CoinGecko (основной)
+                    try {
+                        const response = await fetch(APIs.crypto[0]);
+                        if (!response.ok) throw new Error('CoinGecko недоступен');
+                        
+                        const data = await response.json();
+                        
+                        // Преобразуем данные в нужный формат
+                        data.forEach(coin => {
+                            financeData.push({
+                                id: coin.id,
+                                symbol: coin.symbol.toUpperCase(),
+                                name: coin.name,
+                                type: 'crypto',
+                                price: `$${formatPrice(coin.current_price)}`,
+                                priceNum: coin.current_price,
+                                change: coin.price_change_percentage_24h,
+                                isUp: coin.price_change_percentage_24h >= 0,
+                                color: getCryptoColor(coin.symbol),
+                                marketCap: coin.market_cap,
+                                volume: coin.total_volume
+                            });
+                        });
+                        
+                        console.log(`Загружено ${data.length} криптовалют из CoinGecko`);
+                        return;
+                    } catch (error) {
+                        console.warn('CoinGecko не доступен, пробуем Binance...', error);
+                    }
+                    
+                    // Пробуем Binance (резервный)
+                    try {
+                        const response = await fetch(APIs.crypto[1]);
+                        const data = await response.json();
+                        
+                        // Топ криптовалюты по объему
+                        const topCryptos = data
+                            .filter(ticker => ticker.symbol.endsWith('USDT'))
+                            .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+                            .slice(0, 50);
+                        
+                        topCryptos.forEach(ticker => {
+                            const symbol = ticker.symbol.replace('USDT', '');
+                            const price = parseFloat(ticker.lastPrice);
+                            const change = parseFloat(ticker.priceChangePercent);
+                            
+                            financeData.push({
+                                id: symbol.toLowerCase(),
+                                symbol: symbol,
+                                name: getCryptoName(symbol),
+                                type: 'crypto',
+                                price: `$${formatPrice(price)}`,
+                                priceNum: price,
+                                change: change,
+                                isUp: change >= 0,
+                                color: getCryptoColor(symbol),
+                                marketCap: 0,
+                                volume: parseFloat(ticker.quoteVolume)
+                            });
+                        });
+                        
+                        console.log(`Загружено ${topCryptos.length} криптовалют из Binance`);
+                    } catch (error) {
+                        console.error('Оба API криптовалют недоступны', error);
+                        // Fallback данные
+                        loadFallbackCryptos();
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки криптовалют:', error);
+                    loadFallbackCryptos();
+                }
+            }
+            
+            // ПОЛУЧЕНИЕ НАЗВАНИЯ КРИПТОВАЛЮТЫ ПО СИМВОЛУ
+            function getCryptoName(symbol) {
+                const names = {
+                    'BTC': 'Bitcoin',
+                    'ETH': 'Ethereum',
+                    'BNB': 'Binance Coin',
+                    'XRP': 'Ripple',
+                    'SOL': 'Solana',
+                    'ADA': 'Cardano',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'TRX': 'TRON',
+                    'LINK': 'Chainlink',
+                    'MATIC': 'Polygon',
+                    'LTC': 'Litecoin',
+                    'UNI': 'Uniswap',
+                    'AVAX': 'Avalanche',
+                    'XLM': 'Stellar',
+                    'ATOM': 'Cosmos',
+                    'ALGO': 'Algorand',
+                    'VET': 'VeChain',
+                    'FIL': 'Filecoin',
+                    'ETC': 'Ethereum Classic',
+                    'XTZ': 'Tezos',
+                    'EOS': 'EOS',
+                    'AAVE': 'Aave',
+                    'MKR': 'Maker',
+                    'COMP': 'Compound',
+                    'YFI': 'yearn.finance',
+                    'SNX': 'Synthetix',
+                    'SUSHI': 'SushiSwap',
+                    'CRV': 'Curve DAO Token',
+                    'ZEC': 'Zcash',
+                    'DASH': 'Dash',
+                    'NEO': 'NEO',
+                    'WAVES': 'Waves',
+                    'QTUM': 'Qtum',
+                    'ICX': 'ICON',
+                    'OMG': 'OMG Network',
+                    'ZIL': 'Zilliqa',
+                    'BAT': 'Basic Attention Token',
+                    'ONT': 'Ontology',
+                    'IOST': 'IOST',
+                    'CELR': 'Celer Network',
+                    'ONE': 'Harmony',
+                    'CHZ': 'Chiliz',
+                    'ENJ': 'Enjin Coin',
+                    'ANKR': 'Ankr',
+                    'STMX': 'StormX',
+                    'DENT': 'Dent',
+                    'HOT': 'Holo',
+                    'WRX': 'WazirX',
+                    'FTM': 'Fantom',
+                    'KAVA': 'Kava',
+                    'AR': 'Arweave',
+                    'REN': 'Ren',
+                    'RSR': 'Reserve Rights',
+                    'CVC': 'Civic',
+                    'STORJ': 'Storj',
+                    'DATA': 'Streamr',
+                    'BAND': 'Band Protocol',
+                    'OCEAN': 'Ocean Protocol',
+                    'NKN': 'NKN',
+                    'LTO': 'LTO Network',
+                    'TOMO': 'TomoChain',
+                    'PERL': 'Perlin',
+                    'DUSK': 'Dusk Network',
+                    'KEY': 'SelfKey',
+                    'IQ': 'Everipedia',
+                    'PNT': 'pNetwork',
+                    'DREP': 'Drep',
+                    'TLM': 'Alien Worlds',
+                    'SLP': 'Smooth Love Potion',
+                    'CHR': 'Chromia',
+                    'MDX': 'Mdex',
+                    'ATA': 'Automata',
+                    'DOCK': 'Dock',
+                    'WAN': 'Wanchain',
+                    'WTC': 'Waltonchain',
+                    'ITC': 'IoT Chain',
+                    'GTO': 'Gifto',
+                    'ARN': 'Aeron',
+                    'AGI': 'SingularityNET',
+                    'BLZ': 'Bluzelle',
+                    'REP': 'Augur',
+                    'BTS': 'BitShares',
+                    'LOOM': 'Loom Network',
+                    'MANA': 'Decentraland',
+                    'SAND': 'The Sandbox',
+                    'AXS': 'Axie Infinity',
+                    'GALA': 'Gala',
+                    'YGG': 'Yield Guild Games',
+                    'ILV': 'Illuvium',
+                    'RNDR': 'Render Token',
+                    'AUDIO': 'Audius',
+                    'API3': 'API3',
+                    'GRT': 'The Graph',
+                    'UMA': 'UMA',
+                    'BADGER': 'Badger DAO',
+                    'POND': 'Marlin',
+                    'MIR': 'Mirror Protocol',
+                    'ORC': 'Orchid',
+                    'RLC': 'iExec RLC',
+                    'PHA': 'Phala Network',
+                    'KSM': 'Kusama',
+                    'DIA': 'DIA',
+                    'BEL': 'Bella Protocol',
+                    'SFP': 'SafePal',
+                    'XVS': 'Venus',
+                    'CAKE': 'PancakeSwap',
+                    'BAKE': 'BakeryToken',
+                    'BURGER': 'Burger Swap',
+                    'ALPHA': 'Alpha Finance Lab',
+                    'INJ': 'Injective Protocol',
+                    'CTK': 'CertiK',
+                    'HARD': 'HARD Protocol',
+                    'FOR': 'ForTube',
+                    'TWT': 'Trust Wallet Token',
+                    'EPS': 'Ellipsis',
+                    'AUTO': 'Auto',
+                    'LINA': 'Linear',
+                    'CFX': 'Conflux',
+                    'AKRO': 'Akropolis',
+                    'COTI': 'COTI',
+                    'DODO': 'DODO',
+                    'LIT': 'Litentry',
+                    'REEF': 'Reef',
+                    'TVK': 'Terra Virtua Kolect',
+                    'FIS': 'StaFi',
+                    'PUNDIX': 'Pundi X',
+                    'PSG': 'Paris Saint-Germain Fan Token',
+                    'CITY': 'Manchester City Fan Token',
+                    'OG': 'OG Fan Token',
+                    'ASR': 'AS Roma Fan Token',
+                    'ATM': 'Atletico Madrid Fan Token',
+                    'BAR': 'FC Barcelona Fan Token',
+                    'JUV': 'Juventus Fan Token',
+                    'ACM': 'AC Milan Fan Token',
+                    'GAL': 'Galatasaray Fan Token',
+                    'TRA': 'Trabzonspor Fan Token',
+                    'NAP': 'Napoli Fan Token',
+                    'VAI': 'Vai',
+                    'XEM': 'NEM',
+                    'SC': 'Siacoin',
+                    'ZEN': 'Horizen',
+                    'XVG': 'Verge',
+                    'BCD': 'Bitcoin Diamond',
+                    'SXP': 'Swipe',
+                    'CHSB': 'SwissBorg',
+                    'CND': 'Cindicator',
+                    'GVT': 'Genesis Vision',
+                    'MTL': 'Metal',
+                    'NULS': 'NULS',
+                    'POA': 'POA Network',
+                    'POWR': 'Power Ledger',
+                    'RDN': 'Raiden Network',
+                    'REQ': 'Request',
+                    'SNT': 'Status',
+                    'STORM': 'Storm',
+                    'SUB': 'Substratum',
+                    'SYS': 'Syscoin',
+                    'VIA': 'Viacoin',
+                    'VIB': 'Viberate',
+                    'WPR': 'WePower',
+                    'ZRX': '0x'
+                };
+                return names[symbol] || symbol;
+            }
+            
+            // FALLBACK ДАННЫЕ
+            function loadFallbackCryptos() {
+                const fallbackData = [
+                    { symbol: 'BTC', name: 'Bitcoin', price: '$68,450.23', change: 2.34, isUp: true },
+                    { symbol: 'ETH', name: 'Ethereum', price: '$3,520.67', change: 1.78, isUp: true },
+                    { symbol: 'BNB', name: 'Binance Coin', price: '$585.42', change: -0.45, isUp: false },
+                    { symbol: 'SOL', name: 'Solana', price: '$185.39', change: 5.21, isUp: true },
+                    { symbol: 'XRP', name: 'Ripple', price: '$0.6234', change: -1.23, isUp: false },
+                    { symbol: 'ADA', name: 'Cardano', price: '$0.4812', change: -0.89, isUp: false },
+                    { symbol: 'AVAX', name: 'Avalanche', price: '$42.15', change: 3.45, isUp: true },
+                    { symbol: 'DOGE', name: 'Dogecoin', price: '$0.1523', change: 0.67, isUp: true },
+                    { symbol: 'DOT', name: 'Polkadot', price: '$8.34', change: -2.15, isUp: false },
+                    { symbol: 'MATIC', name: 'Polygon', price: '$1.023', change: 1.23, isUp: true }
+                ];
+                
+                fallbackData.forEach(coin => {
+                    financeData.push({
+                        id: coin.symbol.toLowerCase(),
+                        symbol: coin.symbol,
+                        name: coin.name,
+                        type: 'crypto',
+                        price: coin.price,
+                        priceNum: parseFloat(coin.price.replace('$', '').replace(',', '')),
+                        change: coin.change,
+                        isUp: coin.isUp,
+                        color: getCryptoColor(coin.symbol),
+                        marketCap: 0,
+                        volume: 0
+                    });
+                });
+            }
+            
+            // ЗАГРУЗКА ВАЛЮТ
+            async function loadForex() {
+                try {
+                    console.log('Загрузка валют...');
+                    
+                    // Пробуем ЦБ РФ
+                    try {
+                        const response = await fetch(APIs.forex[0]);
+                        if (!response.ok) throw new Error('ЦБ РФ недоступен');
+                        
+                        const data = await response.json();
+                        
+                        // Основные валюты
+                        const mainCurrencies = ['USD', 'EUR', 'CNY', 'GBP', 'JPY', 'CHF', 'TRY', 'KZT'];
+                        
+                        mainCurrencies.forEach(code => {
+                            if (data.Valute[code]) {
+                                const currency = data.Valute[code];
+                                const change = ((currency.Value - currency.Previous) / currency.Previous * 100);
+                                
+                                financeData.push({
+                                    id: code.toLowerCase(),
+                                    symbol: code,
+                                    name: currency.Name,
+                                    type: 'forex',
+                                    price: `${formatPrice(currency.Value)} ₽`,
+                                    priceNum: currency.Value,
+                                    change: change,
+                                    isUp: change >= 0,
+                                    color: code === 'USD' ? '#00ff41' : 
+                                        code === 'EUR' ? '#0033cc' : 
+                                        code === 'CNY' ? '#de2910' : '#888888'
+                                });
+                            }
+                        });
+                        
+                        console.log(`Загружено ${mainCurrencies.length} валют из ЦБ РФ`);
+                        return;
+                    } catch (error) {
+                        console.warn('ЦБ РФ недоступен, пробуем Open Exchange Rates...', error);
+                    }
+                    
+                    // Пробуем Open Exchange Rates
+                    try {
+                        const response = await fetch(APIs.forex[1]);
+                        const data = await response.json();
+                        
+                        const rates = data.rates;
+                        const mainPairs = {
+                            'EUR/USD': rates.EUR,
+                            'GBP/USD': rates.GBP,
+                            'JPY/USD': rates.JPY,
+                            'CAD/USD': rates.CAD,
+                            'AUD/USD': rates.AUD,
+                            'CHF/USD': rates.CHF
+                        };
+                        
+                        Object.entries(mainPairs).forEach(([pair, rate]) => {
+                            const [from, to] = pair.split('/');
+                            financeData.push({
+                                id: pair.toLowerCase().replace('/', '_'),
+                                symbol: pair,
+                                name: `${from} к ${to}`,
+                                type: 'forex',
+                                price: rate.toFixed(4),
+                                priceNum: rate,
+                                change: 0,
+                                isUp: true,
+                                color: '#888888'
+                            });
+                        });
+                        
+                    } catch (error) {
+                        console.error('Оба API валют недоступны', error);
+                        loadFallbackForex();
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки валют:', error);
+                    loadFallbackForex();
+                }
+            }
+            
+            function loadFallbackForex() {
+                const fallbackCurrencies = [
+                    { symbol: 'USD/RUB', name: 'Доллар США', price: '92.45 ₽', change: 0.23, isUp: true },
+                    { symbol: 'EUR/RUB', name: 'Евро', price: '99.80 ₽', change: -0.12, isUp: false },
+                    { symbol: 'CNY/RUB', name: 'Китайский юань', price: '12.75 ₽', change: 0.34, isUp: true }
+                ];
+                
+                fallbackCurrencies.forEach(currency => {
+                    financeData.push({
+                        id: currency.symbol.toLowerCase().replace('/', '_'),
+                        symbol: currency.symbol,
+                        name: currency.name,
+                        type: 'forex',
+                        price: currency.price,
+                        priceNum: parseFloat(currency.price),
+                        change: currency.change,
+                        isUp: currency.isUp,
+                        color: currency.symbol === 'USD/RUB' ? '#00ff41' : '#888888'
+                    });
+                });
+            }
+            
+            // ОТОБРАЖЕНИЕ ДАННЫХ
+            function displayFinanceData(data) {
+                container.innerHTML = '';
+                
+                if (data.length === 0) {
+                    container.innerHTML = `
+                        <div class="search-info" style="grid-column: 1 / -1;">
+                            🔍 Активов не найдено
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Сортируем по рыночной капитализации (для крипто) или по популярности
+                const sortedData = [...data].sort((a, b) => {
+                    if (a.type === 'crypto' && b.type === 'crypto') {
+                        return (b.marketCap || 0) - (a.marketCap || 0);
+                    }
+                    return a.type === 'crypto' ? -1 : 1;
+                });
+                
+                // Отображаем
+                sortedData.forEach(item => {
+                    const changeValue = Math.abs(item.change).toFixed(2);
+                    const changeSign = item.isUp ? '+' : '-';
+                    
+                    container.innerHTML += `
+                        <div class="card rate-card" style="min-height: 140px; animation: fadeIn 0.3s ease;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span class="pixel-label" style="font-size: 0.9rem; color: ${item.color};">
+                                    ${item.symbol}
+                                </span>
+                                <span style="font-size: 0.7rem; padding: 2px 6px; background: var(--panel-bg); border-radius: 3px;">
+                                    ${item.type === 'crypto' ? 'КРИПТО' : 'ВАЛЮТА'}
+                                </span>
+                            </div>
+                            
+                            <div class="rate-value" style="color: ${item.color}; font-size: 1.8rem; font-weight: bold; margin: 10px 0;">
+                                ${item.price}
+                            </div>
+                            
+                            <div style="font-size: 0.9rem; color: var(--sub-text); margin-bottom: 8px;">
+                                ${item.name}
+                            </div>
+                            
+                            <div class="rate-change ${item.isUp ? 'up' : 'down'}" style="margin-top: auto;">
+                                ${item.isUp ? '↗' : '↘'} ${changeSign}${changeValue}%
+                            </div>
+                            
+                            ${item.volume ? `
+                            <div style="font-size: 0.7rem; color: var(--sub-text); margin-top: 5px;">
+                                Объем: $${(item.volume / 1000000).toFixed(1)}M
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                // Статистика
+                container.innerHTML += `
+                    <div class="search-info" style="grid-column: 1 / -1; text-align: center; padding: 10px;">
+                        📊 Показано ${sortedData.length} активов | 
+                        Крипто: ${sortedData.filter(d => d.type === 'crypto').length} | 
+                        Валюты: ${sortedData.filter(d => d.type === 'forex').length}
+                    </div>
+                `;
+            }
+            
+            // ФИЛЬТРАЦИЯ
+            function filterFinanceData(query = '', filter = 'all') {
+                let filtered = financeData;
+                
+                // Применяем фильтр по типу
+                if (filter !== 'all') {
+                    filtered = filtered.filter(item => item.type === filter);
+                }
+                
+                // Применяем поисковый запрос
+                if (query) {
+                    const q = query.toLowerCase();
+                    filtered = filtered.filter(item => 
+                        item.symbol.toLowerCase().includes(q) ||
+                        item.name.toLowerCase().includes(q) ||
+                        item.id.toLowerCase().includes(q)
+                    );
+                }
+                
+                return filtered;
+            }
+            
+            // ОБРАБОТЧИКИ СОБЫТИЙ
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                const filter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+                const filtered = filterFinanceData(query, filter);
+                displayFinanceData(filtered);
+            });
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    const query = searchInput.value.trim();
+                    const filtered = filterFinanceData(query, filter);
+                    displayFinanceData(filtered);
+                });
+            });
+            
+            // ИНИЦИАЛИЗАЦИЯ
+            async function init() {
+                if (loading) return;
+                loading = true;
+                
+                container.innerHTML = `
+                    <div class="search-info" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+                        <div style="margin-bottom: 10px;">📈 Загрузка финансовых данных...</div>
+                        <div style="font-size: 0.8rem; color: var(--sub-text);">
+                            Получение курсов криптовалют и валют
+                        </div>
+                    </div>
+                `;
+                
+                try {
+                    // Загружаем параллельно крипто и валюты
+                    await Promise.all([
+                        loadCryptocurrencies(),
+                        loadForex()
+                    ]);
+                    
+                    console.log('Всего загружено активов:', financeData.length);
+                    
+                    // Показываем все данные
+                    displayFinanceData(financeData);
+                    
+                } catch (error) {
+                    console.error('Ошибка инициализации финансов:', error);
+                    displayFinanceData([]);
+                } finally {
+                    loading = false;
+                }
+            }
+            
+            // Запускаем при открытии вкладки
+            init();
+            
+            // Автообновление каждые 60 секунд
+            setInterval(() => {
+                if (!document.getElementById('finance').classList.contains('active')) return;
+                
+                console.log('Автообновление финансовых данных...');
+                financeData = [];
+                init();
+            }, 60000);
+        }
+
+        // --- ПОИСК ГОРОДОВ В МИРОВОМ ВРЕМЕНИ (ИСПРАВЛЕННЫЙ) ---
+        async function setupTimeSearch() {
+            const searchInput = document.getElementById('time-search');
+            const container = document.getElementById('world-time-container');
+            
+            if (!searchInput || !container) return;
+            
+            // Используем браузерные таймзоны - они всегда доступны и не требуют API
+            const allTimezones = Intl.supportedValuesOf('timeZone');
+            console.log(`Доступно таймзон: ${allTimezones.length}`);
+            
+            // Преобразуем в удобный формат
+            const timezoneData = allTimezones.map(tz => {
+                const parts = tz.split('/');
+                const city = parts[parts.length - 1].replace(/_/g, ' ');
+                const region = parts.length > 1 ? parts[0] : 'Global';
+                
+                return {
+                    id: tz,
+                    city: city,
+                    region: region,
+                    fullName: tz,
+                    searchText: `${city} ${region} ${tz}`.toLowerCase()
+                };
+            });
+            
+            // Функция отображения городов (без API запросов - используем браузерное время)
+            function displayCities(filteredCities, isSearch = false) {
+                container.innerHTML = '';
+                
+                if (filteredCities.length === 0) {
+                    container.innerHTML = `
+                        <div class="search-info">
+                            🕐 Города не найдены. Попробуйте другой запрос
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Ограничиваем количество для производительности
+                const citiesToShow = isSearch ? filteredCities.slice(0, 30) : filteredCities.slice(0, 12);
+                
+                citiesToShow.forEach(item => {
+                    try {
+                        // Используем браузерное время - оно всегда доступно
+                        const time = new Date().toLocaleTimeString('ru-RU', {
+                            timeZone: item.id,
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        
+                        const date = new Date().toLocaleDateString('ru-RU', {
+                            timeZone: item.id,
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short'
+                        });
+                        
+                        container.innerHTML += `
+                            <div class="card world-time-card" style="min-height: 120px;">
+                                <p class="pixel-label" style="margin-bottom: 5px; font-size: 0.8rem;">
+                                    🌍 ${item.city.toUpperCase()}
+                                </p>
+                                <p class="big-text small" style="margin: 5px 0; color: var(--accent);">
+                                    ${time}
+                                </p>
+                                <p style="font-size: 0.7rem; color: var(--sub-text);">
+                                    📍 ${item.region}<br>
+                                    <span style="font-size: 0.6rem;">${date}</span>
+                                </p>
+                            </div>
+                        `;
+                    } catch (e) {
+                        // Если браузер не поддерживает таймзону
+                        container.innerHTML += `
+                            <div class="card world-time-card">
+                                <p class="pixel-label">${item.city.toUpperCase()}</p>
+                                <p style="color: var(--sub-text);">Таймзона не поддерживается</p>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Показываем статистику
+                if (isSearch) {
+                    container.innerHTML += `
+                        <div class="search-info" style="grid-column: 1 / -1;">
+                            🌐 Найдено: ${filteredCities.length} таймзон | Показано: ${citiesToShow.length}
+                        </div>
+                    `;
+                }
+            }
+            
+            // Показываем популярные города при загрузке
+            const popularTimezones = [
+                'Europe/Moscow', 'Europe/London', 'America/New_York',
+                'Asia/Tokyo', 'Australia/Sydney', 'Europe/Paris',
+                'Asia/Dubai', 'Asia/Shanghai', 'America/Los_Angeles'
+            ];
+            
+            const popularCities = timezoneData.filter(tz => 
+                popularTimezones.includes(tz.id)
+            );
+            
+            displayCities(popularCities.length > 0 ? popularCities : timezoneData.slice(0, 12));
+            
+            // Поиск при вводе
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (query.length < 2) {
+                    displayCities(popularCities.length > 0 ? popularCities : timezoneData.slice(0, 12));
+                    return;
+                }
+                
+                const filtered = timezoneData.filter(tz => 
+                    tz.searchText.includes(query) ||
+                    tz.city.toLowerCase().includes(query) ||
+                    tz.region.toLowerCase().includes(query)
+                );
+                
+                displayCities(filtered, true);
+            });
+            
+            // Автообновление времени для видимых городов каждую минуту
+            setInterval(() => {
+                const currentQuery = searchInput.value.trim();
+                if (currentQuery) {
+                    const filtered = timezoneData.filter(tz => 
+                        tz.searchText.includes(currentQuery.toLowerCase())
+                    );
+                    if (filtered.length > 0) {
+                        displayCities(filtered, true);
+                    }
+                }
+            }, 60000);
+        }
+
+        // --- МЕТЕОЦЕНТР (ИСПРАВЛЕННЫЙ - с работающим API) ---
+        async function setupWeatherSearch() {
+            const searchInput = document.getElementById('weather-search');
+            const container = document.getElementById('weather-container');
+            
+            if (!searchInput || !container) return;
+            
+            // НОВЫЙ API который работает в РФ
+            const WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
+            
+            // Популярные города с координатами (чтобы не зависеть от геокодинга)
+            const popularCities = [
+                { name: 'Москва', lat: 55.7558, lon: 37.6173, country: 'Россия' },
+                { name: 'Лондон', lat: 51.5074, lon: -0.1278, country: 'Великобритания' },
+                { name: 'Токио', lat: 35.6762, lon: 139.6503, country: 'Япония' },
+                { name: 'Нью-Йорк', lat: 40.7128, lon: -74.0060, country: 'США' },
+                { name: 'Париж', lat: 48.8566, lon: 2.3522, country: 'Франция' },
+                { name: 'Берлин', lat: 52.5200, lon: 13.4050, country: 'Германия' },
+                { name: 'Сидней', lat: -33.8688, lon: 151.2093, country: 'Австралия' },
+                { name: 'Дубай', lat: 25.2048, lon: 55.2708, country: 'ОАЭ' }
+            ];
+            
+            // Функция для получения погоды по координатам
+            async function getWeatherByCoords(lat, lon, cityName, country) {
+                try {
+                    const response = await fetch(
+                        `${WEATHER_API}?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`
+                    );
+                    
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    const current = data.current_weather;
+                    
+                    // Коды погоды Open-Meteo
+                    const weatherCodes = {
+                        0: 'Ясно ☀️', 1: 'Преимущественно ясно 🌤️', 
+                        2: 'Переменная облачность ⛅', 3: 'Пасмурно ☁️',
+                        45: 'Туман 🌫️', 48: 'Изморозь тумана ❄️',
+                        51: 'Легкая морось 🌦️', 53: 'Умеренная морось 🌧️',
+                        61: 'Небольшой дождь 🌧️', 63: 'Умеренный дождь 🌧️',
+                        71: 'Небольшой снег ❄️', 73: 'Умеренный снег ❄️',
+                        80: 'Небольшой ливень 🌧️', 95: 'Гроза ⛈️'
+                    };
+                    
+                    const condition = weatherCodes[current.weathercode] || 'Облачно ☁️';
+                    const temp = Math.round(current.temperature);
+                    const wind = Math.round(current.windspeed);
+                    const humidity = data.hourly?.relative_humidity_2m?.[0] || 'Н/Д';
+                    
+                    return {
+                        city: cityName,
+                        country: country,
+                        temp: temp,
+                        condition: condition,
+                        wind: wind,
+                        humidity: humidity,
+                        feelsLike: Math.round(temp - wind * 0.2), // Примерная ощущаемая температура
+                        success: true
+                    };
+                    
+                } catch (error) {
+                    console.error(`Ошибка погоды для ${cityName}:`, error);
+                    return {
+                        city: cityName,
+                        country: country,
+                        temp: 'Н/Д',
+                        condition: 'Данные недоступны',
+                        success: false
+                    };
+                }
+            }
+            
+            // Функция отображения погоды
+            function displayWeather(data) {
+                container.innerHTML = '';
+                
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="search-info" style="grid-column: 1 / -1;">
+                            🌤️ Данные о погоде недоступны
+                        </div>
+                    `;
+                    return;
+                }
+                
+                data.forEach(weather => {
+                    const tempColor = weather.temp === 'Н/Д' ? '#888' : 
+                                    weather.temp > 25 ? '#ff3300' : 
+                                    weather.temp > 15 ? '#ff9900' : 
+                                    weather.temp > 5 ? '#00ff41' : 
+                                    weather.temp > -5 ? '#0099ff' : '#9900ff';
+                    
+                    container.innerHTML += `
+                        <div class="card weather-card" style="min-height: 180px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                <div>
+                                    <p class="pixel-label" style="margin: 0; font-size: 0.9rem;">
+                                        ${weather.condition.split(' ').pop()} ${weather.city.toUpperCase()}
+                                    </p>
+                                    <p style="font-size: 0.8rem; color: var(--sub-text);">
+                                        ${weather.country}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div style="font-size: 2.5rem; font-weight: bold; color: ${tempColor}; margin: 10px 0;">
+                                ${weather.temp}°C
+                            </div>
+                            
+                            ${weather.success ? `
+                            <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                                ${weather.condition}
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.8rem; margin-top: 15px;">
+                                <div>
+                                    <div style="color: var(--sub-text);">💨 Ветер</div>
+                                    <div>${weather.wind} км/ч</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--sub-text);">💧 Влажность</div>
+                                    <div>${weather.humidity}%</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--sub-text);">🌡️ Ощущается</div>
+                                    <div>${weather.feelsLike}°C</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--sub-text);">📅 Обновлено</div>
+                                    <div>${new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}</div>
+                                </div>
+                            </div>
+                            ` : `
+                            <div style="color: var(--sub-text); margin-top: 20px;">
+                                Нет данных о погоде
+                            </div>
+                            `}
+                        </div>
+                    `;
+                });
+            }
+            
+            // Показываем популярные города при загрузке
+            async function showPopularCities() {
+                container.innerHTML = `
+                    <div class="search-info" style="grid-column: 1 / -1;">
+                        🌤️ Загрузка погоды для ${popularCities.length} городов...
+                    </div>
+                `;
+                
+                const weatherPromises = popularCities.map(city => 
+                    getWeatherByCoords(city.lat, city.lon, city.name, city.country)
+                );
+                
+                try {
+                    const results = await Promise.all(weatherPromises);
+                    displayWeather(results.filter(r => r.success).slice(0, 8));
+                } catch (error) {
+                    console.error('Ошибка загрузки погоды:', error);
+                    container.innerHTML = `
+                        <div class="search-info" style="grid-column: 1 / -1;">
+                            ⚠️ Не удалось загрузить погоду. Проверьте подключение.
+                        </div>
+                    `;
+                }
+            }
+            
+            // Поиск города по названию
+            async function searchCity(query) {
+                if (!query || query.trim().length < 2) {
+                    await showPopularCities();
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="search-info" style="grid-column: 1 / -1;">
+                        🔍 Поиск города "${query}"...
+                    </div>
+                `;
+                
+                try {
+                    // Используем геокодинг для поиска координат
+                    const geoResponse = await fetch(
+                        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=ru`
+                    );
+                    
+                    const geoData = await geoResponse.json();
+                    
+                    if (!geoData.results || geoData.results.length === 0) {
+                        container.innerHTML = `
+                            <div class="search-info" style="grid-column: 1 / -1;">
+                                🌍 Город "${query}" не найден
+                            </div>
+                        `;
+                        await showPopularCities();
+                        return;
+                    }
+                    
+                    const city = geoData.results[0];
+                    const weather = await getWeatherByCoords(
+                        city.latitude, 
+                        city.longitude, 
+                        city.name, 
+                        city.country
+                    );
+                    
+                    displayWeather([weather]);
+                    
+                } catch (error) {
+                    console.error('Ошибка поиска города:', error);
+                    container.innerHTML = `
+                        <div class="search-info" style="grid-column: 1 / -1;">
+                            🔍 Ошибка поиска. Попробуйте позже.
+                        </div>
+                    `;
+                    await showPopularCities();
+                }
+            }
+            
+            // Обработчики событий
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                searchCity(query);
+            });
+            
+            // Фильтры погоды
+            document.querySelectorAll('.weather-filter-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    document.querySelectorAll('.weather-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Пока просто обновляем данные
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        await searchCity(query);
+                    } else {
+                        await showPopularCities();
+                    }
+                });
+            });
+            
+            // Инициализация
+            await showPopularCities();
+            
+            // Автообновление каждые 5 минут
+            setInterval(async () => {
+                if (!document.getElementById('weather').classList.contains('active')) return;
+                
+                const query = searchInput.value.trim();
+                if (query) {
+                    await searchCity(query);
+                } else {
+                    await showPopularCities();
+                }
+            }, 300000);
+        }
+
+        // --- СЕКУНДОМЕР PRO (Миллисекунды и Круги) ---
+        const stopwatch = {
+            timer: null, startTime: 0, elapsedTime: 0, running: false, lapCount: 0,
+            display: document.getElementById('sw-display'),
+            laps: document.getElementById('laps-list'),
+
+            formatTime(ms) {
+                let h = Math.floor(ms / 3600000).toString().padStart(2, '0');
+                let m = Math.floor((ms % 3600000) / 60000).toString().padStart(2, '0');
+                let s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+                let ms_f = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+                return `${h}:${m}:${s}.${ms_f}`;
+            },
+            
+            update() {
+                const now = Date.now();
+                this.elapsedTime = now - this.startTime;
+                this.display.innerText = this.formatTime(this.elapsedTime);
+            },
+
+            toggle() {
+                if(this.running) {
+                    clearInterval(this.timer);
+                    this.running = false;
+                    document.getElementById('sw-btn').innerText = "RESUME";
+                } else {
+                    this.startTime = Date.now() - this.elapsedTime;
+                    this.timer = setInterval(() => this.update(), 10);
+                    this.running = true;
+                    document.getElementById('sw-btn').innerText = "STOP";
+                }
+            },
+            
+            lap() {
+                if(this.running) {
+                    this.lapCount++;
+                    const lapTime = this.formatTime(this.elapsedTime);
+                    this.laps.innerHTML += `<li>Круг ${this.lapCount}: <span>${lapTime}</span></li>`;
+                    this.laps.scrollTop = this.laps.scrollHeight;
+                }
+            },
+
+            reset() {
+                clearInterval(this.timer);
+                this.running = false;
+                this.elapsedTime = 0;
+                this.lapCount = 0;
+                this.display.innerText = "00:00:00.00";
+                document.getElementById('sw-btn').innerText = "START";
+                this.laps.innerHTML = '';
+            }
+        };
+
+        // --- ТАЙМЕР PRO (Дни, Часы, Минуты, Секунды) ---
+        const timer = {
+            timer: null, totalSeconds: 0, running: false,
+            display: document.getElementById('tm-display'),
+
+            formatTime(totalSecs) {
+                const d = Math.floor(totalSecs / (3600 * 24));
+                const h = Math.floor((totalSecs % (3600 * 24)) / 3600);
+                const m = Math.floor((totalSecs % 3600) / 60);
+                const s = Math.floor(totalSecs % 60);
+                return `${d.toString().padStart(2,'0')}:${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            },
+
+            start() {
+                if(this.running) return;
+                
+                const d = parseInt(document.getElementById('tm-days').value) || 0;
+                const h = parseInt(document.getElementById('tm-hours').value) || 0;
+                const m = parseInt(document.getElementById('tm-mins').value) || 0;
+                const s = parseInt(document.getElementById('tm-secs').value) || 0;
+                
+                this.totalSeconds = d * 86400 + h * 3600 + m * 60 + s;
+                if(this.totalSeconds <= 0) return;
+
+                document.getElementById('tm-btn').innerText = "РАБОТАЕТ...";
+                this.running = true;
+                
+                this.timer = setInterval(() => {
+                    this.totalSeconds--;
+                    this.display.innerText = this.formatTime(this.totalSeconds);
+                    if(this.totalSeconds <= 0) {
+                        this.reset();
+                        alert("ТАЙМЕР ЗАВЕРШЕН!");
+                    }
+                }, 1000);
+            },
+            
+            pause() {
+                if(this.running) {
+                    clearInterval(this.timer);
+                    this.running = false;
+                    document.getElementById('tm-btn').innerText = "RESUME";
+                }
+            },
+            
+            reset() {
+                clearInterval(this.timer);
+                this.running = false;
+                this.totalSeconds = 0;
+                this.display.innerText = "00:00:00:00";
+                document.getElementById('tm-btn').innerText = "СТАРТ";
+            }
+        };
+
+        // --- ФИНАНСЫ (АКЦИИ, КРИПТО, СЫРЬЕ) ---
+        async function fetchFinance() {
+            const container = document.getElementById('rates-container');
+            container.innerHTML = '<p class="pixel-label">Загрузка данных...</p>';
+
+            // Массив данных для отображения (реальные API)
+            const financeData = [
+                {
+                    label: 'USD / RUB',
+                    // Публичный API ЦБ РФ (официальный курс)
+                    url: 'https://www.cbr-xml-daily.ru/daily_json.js',
+                    process: (data) => {
+                        const rate = data.Valute.USD.Value.toFixed(2);
+                        const prev = data.Valute.USD.Previous;
+                        const change = ((rate - prev) / prev * 100).toFixed(2);
+                        return {
+                            value: `${rate} ₽`,
+                            change: change,
+                            isUp: change >= 0
+                        };
+                    },
+                    color: '#00ff41'
+                },
+                {
+                    label: 'EUR / RUB',
+                    url: 'https://www.cbr-xml-daily.ru/daily_json.js',
+                    process: (data) => {
+                        const rate = data.Valute.EUR.Value.toFixed(2);
+                        const prev = data.Valute.EUR.Previous;
+                        const change = ((rate - prev) / prev * 100).toFixed(2);
+                        return {
+                            value: `${rate} ₽`,
+                            change: change,
+                            isUp: change >= 0
+                        };
+                    },
+                    color: '#2ecc71'
+                },
+                {
+                    label: 'BITCOIN / USD',
+                    // Публичный API без ограничений
+                    url: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
+                    process: (data) => {
+                        const rate = data.bitcoin.usd.toLocaleString('en-US', {maximumFractionDigits: 0});
+                        const change = data.bitcoin.usd_24h_change.toFixed(1);
+                        return {
+                            value: `$${rate}`,
+                            change: change,
+                            isUp: change >= 0
+                        };
+                    },
+                    color: '#f7931a'
+                },
+                {
+                    label: 'GOLD (XAU)',
+                    // Заглушка с реалистичными данными
+                    url: null,
+                    process: () => {
+                        return {
+                            value: '$2345.67',
+                            change: '+0.8',
+                            isUp: true
+                        };
+                    },
+                    color: '#ffd700'
+                }
+            ];
+
+            container.innerHTML = '';
+            
+            for (const item of financeData) {
+                try {
+                    let result;
+                    if (item.url) {
+                        const res = await fetch(item.url);
+                        const data = await res.json();
+                        result = item.process(data);
+                    } else {
+                        result = item.process();
+                    }
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <p class="pixel-label">${item.label}</p>
+                            <div class="rate-value" style="color:${item.color};">${result.value}</div>
+                            <div class="rate-change ${result.isUp ? 'up' : 'down'}">
+                                ${result.isUp ? '+' : ''}${result.change}%
+                            </div>
+                        </div>
+                    `;
+                } catch(e) {
+                    console.error(`Ошибка загрузки ${item.label}:`, e);
+                    // Запасной вариант
+                    container.innerHTML += `
+                        <div class="card">
+                            <p class="pixel-label">${item.label}</p>
+                            <div class="rate-value" style="color:${item.color};">Н/Д</div>
+                            <div class="rate-change">—</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        fetchFinance();
+
+        // УПРАВЛЕНИЕ ВКЛАДКАМИ С СОХРАНЕНИЕМ ПОИСКА
+        const originalSwitchTab = switchTab;
+        switchTab = function(id) {
+            originalSwitchTab(id);
+            
+            // При переключении на вкладку обновляем данные
+            setTimeout(() => {
+                switch(id) {
+                    case 'clock':
+                        if (window.globalSearch) {
+                            const searchInput = document.getElementById('time-search');
+                            if (searchInput && searchInput.value) {
+                                window.globalSearch.searchQuery = searchInput.value;
+                                window.globalSearch.updateTimeDisplay && window.globalSearch.updateTimeDisplay();
+                            }
+                        }
+                        break;
+                    case 'finance':
+                        if (window.globalSearch) {
+                            window.globalSearch.updateFinanceDisplay && window.globalSearch.updateFinanceDisplay();
+                        }
+                        break;
+                    case 'weather':
+                        if (window.globalSearch) {
+                            window.globalSearch.updateWeatherDisplay && window.globalSearch.updateWeatherDisplay();
+                        }
+                        break;
+                }
+            }, 100);
+        };
+
+        // АВТОФОКУС НА ПОИСК ПРИ ПЕРЕКЛЮЧЕНИИ ВКЛАДОК
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const target = item.dataset.target;
+                setTimeout(() => {
+                    let searchInput;
+                    switch(target) {
+                        case 'clock':
+                            searchInput = document.getElementById('time-search');
+                            break;
+                        case 'finance':
+                            searchInput = document.getElementById('finance-search');
+                            break;
+                        case 'weather':
+                            searchInput = document.getElementById('weather-search');
+                            break;
+                    }
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 300);
+            });
+        });
+
+        // ГОРЯЧИЕ КЛАВИШИ
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+F для поиска на активной вкладке
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                
+                let searchInput;
+                if (document.getElementById('clock').classList.contains('active')) {
+                    searchInput = document.getElementById('time-search');
+                } else if (document.getElementById('finance').classList.contains('active')) {
+                    searchInput = document.getElementById('finance-search');
+                } else if (document.getElementById('weather').classList.contains('active')) {
+                    searchInput = document.getElementById('weather-search');
+                }
+                
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+            
+            // Escape для очистки поиска
+            if (e.key === 'Escape') {
+                const activeInput = document.querySelector('input:focus');
+                if (activeInput) {
+                    activeInput.value = '';
+                    activeInput.dispatchEvent(new Event('input'));
+                }
+            }
+        });
+
+        // --- ОПРЕДЕЛЕНИЕ ЛОКАЦИИ (ЗАМЕНА ipapi.co) ---
+        async function getLocation() {
+            const geoElement = document.getElementById('geo-city');
+            if (!geoElement) return;
+            
+            try {
+                // Пробуем несколько вариантов API
+                const apis = [
+                    'https://ipapi.co/json/',
+                    'https://ipinfo.io/json',
+                    'https://geolocation-db.com/json/'
+                ];
+                
+                let locationData = null;
+                
+                for (const api of apis) {
+                    try {
+                        const response = await fetch(api);
+                        if (response.ok) {
+                            locationData = await response.json();
+                            break;
+                        }
+                    } catch (e) { /* Пробуем следующий API */ }
+                }
+                
+                if (locationData) {
+                    geoElement.innerText = (locationData.city || locationData.country_name || 'Неизвестно').toUpperCase();
+                } else {
+                    // Fallback: используем браузерную геолокацию
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(async (position) => {
+                            try {
+                                const response = await fetch(
+                                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+                                );
+                                const data = await response.json();
+                                geoElement.innerText = (data.address.city || data.address.country || 'Ваше местоположение').toUpperCase();
+                            } catch (e) {
+                                geoElement.innerText = 'ОПРЕДЕЛЕНО';
+                            }
+                        }, () => {
+                            geoElement.innerText = 'ОПРЕДЕЛЕНО';
+                        });
+                    } else {
+                        geoElement.innerText = 'ОПРЕДЕЛЕНО';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка определения локации:', error);
+                geoElement.innerText = 'ОПРЕДЕЛЕНО';
+            }
+        }
+
+        // Вызовите эту функцию при загрузке страницы
+        getLocation();
+
+        // --- ПОГОДА (Multi-City & Details) ---
+        const weatherCities = ['Moscow', 'London', 'Tokyo', 'New York'];
+        async function fetchWeather() {
+            const container = document.getElementById('weather-container');
+            container.innerHTML = '<p class="pixel-label">Загрузка погоды...</p>';
+
+            // 1. Определение местоположения пользователя (через IP)
+            try {
+                const geoRes = await fetch('https://ipapi.co/json/');
+                const geoData = await geoRes.json();
+                const city = geoData.city || 'Москва';
+                document.getElementById('geo-city').innerText = city.toUpperCase();
+            } catch(e) {
+                document.getElementById('geo-city').innerText = 'МОСКВА';
+            }
+
+            // 2. Погода для городов (используем Open-Meteo API - работает в РФ)
+            container.innerHTML = '';
+            
+            for (const city of weatherCities) {
+                try {
+                    // Получаем координаты города
+                    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1`);
+                    const geoData = await geoRes.json();
+                    
+                    if (!geoData.results || geoData.results.length === 0) continue;
+                    
+                    const { latitude, longitude } = geoData.results[0];
+                    
+                    // Получаем погоду по координатам
+                    const weatherRes = await fetch(
+                        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`
+                    );
+                    const weatherData = await weatherRes.json();
+                    
+                    const current = weatherData.current_weather;
+                    const temp = Math.round(current.temperature);
+                    const wind = Math.round(current.windspeed);
+                    const weatherCode = current.weathercode;
+                    
+                    // Преобразуем код погоды в текст
+                    const weatherDescriptions = {
+                        0: 'Ясно', 1: 'Преимущественно ясно',
+                        2: 'Переменная облачность', 3: 'Пасмурно',
+                        45: 'Туман', 48: 'Изморозь',
+                        51: 'Лекая морось', 53: 'Умеренная морось',
+                        55: 'Сильная морось', 56: 'Ледяная морось',
+                        61: 'Небольшой дождь', 63: 'Умеренный дождь',
+                        65: 'Сильный дождь', 80: 'Ливень'
+                    };
+                    
+                    const desc = weatherDescriptions[weatherCode] || 'Облачно';
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <p class="pixel-label" style="margin-bottom: 5px;">${city.toUpperCase()}</p>
+                            <div class="big-text small" style="margin: 0; color: var(--accent);">${temp}°C</div>
+                            <p>${desc}</p>
+                            <p style="font-size: 0.8rem; margin-top: 10px;">
+                                Ветер: ${wind} км/ч<br>
+                                Широта: ${latitude.toFixed(1)}°, Долгота: ${longitude.toFixed(1)}°
+                            </p>
+                        </div>
+                    `;
+                } catch(e) {
+                    console.error(`Ошибка погоды для ${city}:`, e);
+                    // Запасной вариант
+                    container.innerHTML += `
+                        <div class="card">
+                            <p class="pixel-label" style="margin-bottom: 5px;">${city.toUpperCase()}</p>
+                            <div class="big-text small" style="margin: 0; color: var(--accent);">Н/Д</div>
+                            <p>Данные временно недоступны</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        fetchWeather();
+
+        // ВКЛАДКА "МИРОВОЕ ВРЕМЯ" - С API
+        async function setupTimeSearch() {
+            const searchInput = document.getElementById('time-search');
+            if (!searchInput) return;
+            
+            // API который работает в РФ без CORS
+            const TIMEZONES_API = 'https://worldtimeapi.org/api/timezone';
+            
+            // Получаем список всех часовых поясов
+            let allTimezones = [];
+            try {
+                const response = await fetch(TIMEZONES_API);
+                allTimezones = await response.json();
+                console.log(`Загружено ${allTimezones.length} часовых поясов`);
+            } catch (error) {
+                console.error('Ошибка загрузки часовых поясов:', error);
+                // Fallback: используем браузерные таймзоны
+                allTimezones = Intl.supportedValuesOf('timeZone');
+            }
+            
+            // Форматируем данные
+            const timezoneData = allTimezones.map(tz => ({
+                id: tz,
+                city: tz.split('/').pop().replace(/_/g, ' '),
+                region: tz.split('/')[0] || 'Global',
+                searchText: tz.toLowerCase()
+            }));
+            
+            // Показываем популярные города сразу
+            const popularCities = ['Europe/Moscow', 'Europe/London', 'America/New_York', 
+                                'Asia/Tokyo', 'Australia/Sydney', 'Asia/Dubai'];
+            displayTimezones(timezoneData.filter(tz => popularCities.includes(tz.id)));
+            
+            // Поиск при вводе
+            searchInput.addEventListener('input', async (e) => {
+                const query = e.target.value.toLowerCase();
+                
+                if (query.length < 2) {
+                    displayTimezones(timezoneData.filter(tz => popularCities.includes(tz.id)));
+                    return;
+                }
+                
+                const filtered = timezoneData.filter(tz => 
+                    tz.searchText.includes(query) ||
+                    tz.city.toLowerCase().includes(query)
+                );
+                
+                // Обновляем время для найденных городов
+                await displayTimezones(filtered.slice(0, 50), true);
+            });
+            
+            // Функция отображения с реальным временем
+            async function displayTimezones(timezones, showLoading = false) {
+                const container = document.getElementById('world-time-container');
+                container.innerHTML = showLoading ? '<p>Загрузка времени...</p>' : '';
+                
+                for (const tz of timezones.slice(0, 30)) {
+                    try {
+                        // Получаем реальное время для каждого города
+                        const timeResponse = await fetch(`https://smartapp-code.sberdevices.ru/tools/api/now?tz=${tz.id}`);
+                        const timeData = await timeResponse.json();
+                        
+                        const time = new Date(timeData.datetime).toLocaleTimeString('ru-RU', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        
+                        container.innerHTML += `
+                            <div class="card time-card">
+                                <p class="pixel-label">${tz.city.toUpperCase()}</p>
+                                <div class="big-text small" style="color: var(--accent);">${time}</div>
+                                <p style="font-size: 0.7rem; color: var(--sub-text);">
+                                    ${tz.region} • UTC${timeData.utc_offset}
+                                </p>
+                            </div>
+                        `;
+                    } catch (error) {
+                        // Fallback: используем локальное время
+                        const time = new Date().toLocaleTimeString('ru-RU', {
+                            timeZone: tz.id,
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        container.innerHTML += `
+                            <div class="card time-card">
+                                <p class="pixel-label">${tz.city.toUpperCase()}</p>
+                                <div class="big-text small" style="color: var(--accent);">${time}</div>
+                                <p style="font-size: 0.7rem; color: var(--sub-text);">${tz.region}</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        }
+
+        // ВКЛАДКА "ФИНАНСЫ" - С API
+        async function setupFinanceSearch() {
+            const searchInput = document.getElementById('finance-search');
+            if (!searchInput) return;
+            
+            // API которые работают в РФ
+            const APIs = {
+                // Криптовалюты (работает без ключа)
+                crypto: 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100',
+                // Валюты (ЦБ РФ)
+                forex: 'https://www.cbr-xml-daily.ru/daily_json.js',
+                // Сырье (fallback API)
+                commodity: null
+            };
+            
+            let financeData = [];
+            let loaded = false;
+            
+            // Загружаем данные при открытии вкладки
+            async function loadFinanceData() {
+                if (loaded) return;
+                
+                try {
+                    // Загружаем криптовалюты
+                    const cryptoRes = await fetch(APIs.crypto);
+                    const cryptoData = await cryptoRes.json();
+                    
+                    cryptoData.slice(0, 20).forEach(crypto => {
+                        financeData.push({
+                            symbol: crypto.symbol.toUpperCase(),
+                            name: crypto.name,
+                            type: 'crypto',
+                            price: `$${crypto.current_price.toLocaleString()}`,
+                            change: crypto.price_change_percentage_24h.toFixed(2),
+                            isUp: crypto.price_change_percentage_24h >= 0,
+                            color: crypto.symbol === 'btc' ? '#f7931a' : '#627eea'
+                        });
+                    });
+                    
+                    // Загружаем валюты
+                    const forexRes = await fetch(APIs.forex);
+                    const forexData = await forexRes.json();
+                    
+                    Object.values(forexData.Valute).slice(0, 10).forEach(currency => {
+                        financeData.push({
+                            symbol: currency.CharCode,
+                            name: currency.Name,
+                            type: 'forex',
+                            price: `${currency.Value.toFixed(2)} ₽`,
+                            change: ((currency.Value - currency.Previous) / currency.Previous * 100).toFixed(2),
+                            isUp: currency.Value >= currency.Previous,
+                            color: currency.CharCode === 'USD' ? '#00ff41' : '#0033cc'
+                        });
+                    });
+                    
+                    loaded = true;
+                    console.log('Загружено финансовых активов:', financeData.length);
+                    updateFinanceDisplay();
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки финансовых данных:', error);
+                    // Fallback данные
+                    financeData = getFallbackFinanceData();
+                    updateFinanceDisplay();
+                }
+            }
+            
+            // Поиск и фильтрация
+            searchInput.addEventListener('input', (e) => {
+                updateFinanceDisplay(e.target.value.toLowerCase());
+            });
+            
+            // Фильтры
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    window.currentFinanceFilter = this.dataset.filter;
+                    updateFinanceDisplay(searchInput.value);
+                });
+            });
+            
+            function updateFinanceDisplay(query = '') {
+                if (!loaded && query.length === 0) {
+                    loadFinanceData();
+                    return;
+                }
+                
+                let filtered = financeData;
+                
+                if (window.currentFinanceFilter && window.currentFinanceFilter !== 'all') {
+                    filtered = filtered.filter(item => item.type === window.currentFinanceFilter);
+                }
+                
+                if (query) {
+                    filtered = filtered.filter(item => 
+                        item.symbol.toLowerCase().includes(query) ||
+                        item.name.toLowerCase().includes(query)
+                    );
+                }
+                
+                displayFinanceData(filtered.slice(0, 50));
+            }
+            
+            function displayFinanceData(data) {
+                const container = document.getElementById('rates-container');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                data.forEach(item => {
+                    container.innerHTML += `
+                        <div class="card rate-card">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span class="pixel-label">${item.symbol}</span>
+                                <span style="font-size: 0.7rem; background: var(--panel-bg); padding: 2px 6px; border-radius: 3px;">
+                                    ${item.type === 'crypto' ? 'КРИПТО' : 'ВАЛЮТА'}
+                                </span>
+                            </div>
+                            <div style="font-size: 1.8rem; color: ${item.color}; margin: 10px 0; font-weight: bold;">
+                                ${item.price}
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--sub-text);">${item.name}</div>
+                            <div class="rate-change ${item.isUp ? 'up' : 'down'}" style="margin-top: 10px;">
+                                ${item.isUp ? '↗' : '↘'} ${Math.abs(item.change)}%
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (data.length === 0) {
+                    container.innerHTML = `<div class="search-info">Ничего не найдено</div>`;
+                }
+            }
+            
+            // Инициализация
+            loadFinanceData();
+        }
+
+        // ВКЛАДКА "ПОГОДА" - С API
+        async function setupWeatherSearch() {
+            const searchInput = document.getElementById('weather-search');
+            if (!searchInput) return;
+            
+            // API погоды (wttr.in работает в РФ)
+            const WEATHER_API = 'https://wttr.in/';
+            
+            // Популярные города
+            const popularCities = ['Moscow', 'London', 'Tokyo', 'New_York', 'Paris', 'Berlin'];
+            
+            // Показываем популярные города сразу
+            await displayWeatherForCities(popularCities);
+            
+            // Поиск по городам
+            searchInput.addEventListener('input', async (e) => {
+                const query = e.target.value.trim();
+                
+                if (query.length < 2) {
+                    await displayWeatherForCities(popularCities);
+                    return;
+                }
+                
+                try {
+                    // Пробуем найти город
+                    const response = await fetch(`${WEATHER_API}${query}?format=j1`);
+                    const data = await response.json();
+                    
+                    if (data.current_condition) {
+                        displayWeatherForCity(query, data);
+                    }
+                } catch (error) {
+                    console.error('Ошибка поиска погоды:', error);
+                    document.getElementById('weather-container').innerHTML = `
+                        <div class="search-info">
+                            Город "${query}" не найден
+                        </div>
+                    `;
+                }
+            });
+            
+            // Фильтры по типу погоды
+            document.querySelectorAll('.weather-filter-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    document.querySelectorAll('.weather-filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.dataset.weatherFilter;
+                    
+                    // Применяем фильтр к уже загруженным данным
+                    const container = document.getElementById('weather-container');
+                    const cards = container.querySelectorAll('.weather-card');
+                    
+                    cards.forEach(card => {
+                        const weatherType = card.dataset.weatherType;
+                        card.style.display = (filter === 'all' || weatherType === filter) ? 'block' : 'none';
+                    });
+                });
+            });
+            
+            async function displayWeatherForCities(cities) {
+                const container = document.getElementById('weather-container');
+                container.innerHTML = '<p>Загрузка погоды...</p>';
+                
+                let html = '';
+                
+                for (const city of cities) {
+                    try {
+                        const response = await fetch(`${WEATHER_API}${city}?format=j1`);
+                        const data = await response.json();
+                        
+                        if (data.current_condition) {
+                            html += createWeatherCard(city, data);
+                        }
+                    } catch (error) {
+                        console.error(`Ошибка погоды для ${city}:`, error);
+                    }
+                }
+                
+                container.innerHTML = html || '<p>Не удалось загрузить погоду</p>';
+            }
+            
+            function displayWeatherForCity(cityName, data) {
+                const container = document.getElementById('weather-container');
+                container.innerHTML = createWeatherCard(cityName, data);
+            }
+            
+            function createWeatherCard(cityName, data) {
+                const current = data.current_condition[0];
+                const temp = current.temp_C;
+                const condition = current.weatherDesc[0].value;
+                const humidity = current.humidity;
+                const wind = current.windspeedKmph;
+                
+                // Определяем тип погоды для фильтра
+                let weatherType = 'cloudy';
+                if (condition.toLowerCase().includes('sun') || condition.toLowerCase().includes('clear')) weatherType = 'sunny';
+                if (condition.toLowerCase().includes('rain')) weatherType = 'rainy';
+                if (condition.toLowerCase().includes('snow')) weatherType = 'snowy';
+                if (condition.toLowerCase().includes('storm') || condition.toLowerCase().includes('thunder')) weatherType = 'stormy';
+                
+                // Цвет температуры
+                const tempColor = temp > 25 ? '#ff3300' : 
+                                temp > 15 ? '#ff9900' : 
+                                temp > 5 ? '#00ff41' : 
+                                temp > -5 ? '#0099ff' : '#9900ff';
+                
+                return `
+                    <div class="card weather-card" data-weather-type="${weatherType}">
+                        <p class="pixel-label">${cityName.replace('_', ' ').toUpperCase()}</p>
+                        <div style="font-size: 2.5rem; color: ${tempColor}; font-weight: bold; margin: 10px 0;">
+                            ${temp}°C
+                        </div>
+                        <div style="font-size: 1rem; margin-bottom: 10px;">${condition}</div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+                            <div>
+                                <div style="color: var(--sub-text);">💧 Влажность</div>
+                                <div>${humidity}%</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--sub-text);">💨 Ветер</div>
+                                <div>${wind} км/ч</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--sub-text);">🌡️ Ощущается</div>
+                                <div>${current.FeelsLikeC}°C</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--sub-text);">👁️ Видимость</div>
+                                <div>${current.visibility} км</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 15px; font-size: 0.8rem; color: var(--sub-text);">
+                            Обновлено: ${new Date().toLocaleTimeString('ru-RU')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ИНИЦИАЛИЗАЦИЯ ВСЕГО ПРИ ЗАГРУЗКЕ
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Запуск с реальными API...');
+            
+            // Инициализация поиска при переключении вкладок
+            const originalSwitchTab = switchTab;
+            switchTab = function(tabId) {
+                originalSwitchTab(tabId);
+                
+                setTimeout(() => {
+                    switch(tabId) {
+                        case 'clock':
+                            setupTimeSearch();
+                            break;
+                        case 'finance':
+                            setupFinanceSearch();
+                            break;
+                        case 'weather':
+                            setupWeatherSearch();
+                            break;
+                    }
+                }, 100);
+            };
+            
+            // Инициализация при первой загрузке
+            if (document.getElementById('clock').classList.contains('active')) {
+                setupTimeSearch();
+            }
+        });
+
+        function getFallbackFinanceData() {
+            return [
+                {symbol: 'BTC', name: 'Bitcoin', type: 'crypto', price: '$68,450', change: '+2.3%', isUp: true, color: '#f7931a'},
+                {symbol: 'ETH', name: 'Ethereum', type: 'crypto', price: '$3,520', change: '+1.8%', isUp: true, color: '#627eea'},
+                {symbol: 'USD', name: 'Доллар США', type: 'forex', price: '92.45 ₽', change: '+0.2%', isUp: true, color: '#00ff41'},
+                {symbol: 'EUR', name: 'Евро', type: 'forex', price: '99.80 ₽', change: '-0.1%', isUp: false, color: '#0033cc'},
+                {symbol: 'GAZP', name: 'Газпром', type: 'stock', price: '198.50 ₽', change: '+0.8%', isUp: true, color: '#00a550'},
+                {symbol: 'SBER', name: 'Сбербанк', type: 'stock', price: '325.20 ₽', change: '+1.2%', isUp: true, color: '#48b85b'},
+                {symbol: 'XAU', name: 'Золото', type: 'commodity', price: '$2,345', change: '+0.7%', isUp: true, color: '#ffd700'},
+                {symbol: 'BRENT', name: 'Нефть Brent', type: 'commodity', price: '$82.30', change: '-1.5%', isUp: false, color: '#000000'}
+            ];
+        }
+        
+        // --- НОВОСТИ (Public RSS Proxy) ---
+        async function fetchNews() {
+            const container = document.getElementById('news-feed');
+            container.innerHTML = '<p class="pixel-label">Загрузка новостей...</p>';
+            
+            // Российские RSS-ленты (выберите одну)
+            const rssFeeds = [
+                'https://lenta.ru/rss/news',          // Лента.ру
+                // 'https://www.vedomosti.ru/rss/news',  // Ведомости
+                // 'https://ria.ru/export/rss2/archive/index.xml' // РИА Новости
+            ];
+            
+            const selectedFeed = rssFeeds[0]; // Можно добавить выбор
+            
+            try {
+                const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(selectedFeed)}`;
+                const res = await fetch(proxyUrl);
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+
+                if (data.items && data.items.length > 0) {
+                    container.innerHTML = '';
+                    data.items.slice(0, 8).forEach(item => {
+                        const date = new Date(item.pubDate);
+                        const timeStr = date.toLocaleTimeString('ru-RU', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
+                        
+                        container.innerHTML += `
+                            <div class="card" style="margin-bottom: 10px;">
+                                <p class="pixel-label" style="color: var(--accent); margin-bottom: 5px; font-size: 0.8rem;">
+                                    ${item.title.toUpperCase()}
+                                </p>
+                                <p style="font-size: 0.8rem; color: var(--sub-text); margin-bottom: 8px;">
+                                    📅 ${date.toLocaleDateString('ru-RU')} 🕐 ${timeStr}
+                                </p>
+                                <p style="font-size: 0.9rem; margin-bottom: 8px;">${item.description.substring(0, 120)}...</p>
+                                <a href="${item.link}" target="_blank" 
+                                style="color: var(--accent); text-decoration: none; font-size: 0.8rem; border: 1px solid var(--accent); padding: 3px 8px; display: inline-block;">
+                                    📖 ЧИТАТЬ
+                                </a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.innerHTML = '<p class="pixel-label" style="text-align: center; padding: 20px;">НОВОСТИ НЕ НАЙДЕНЫ</p>';
+                }
+            } catch(e) {
+                console.error('Ошибка загрузки новостей:', e);
+                container.innerHTML = `
+                    <div class="card">
+                        <p class="pixel-label" style="text-align: center;">ОШИБКА ЗАГРУЗКИ НОВОСТЕЙ</p>
+                        <p style="font-size: 0.9rem; text-align: center; margin-top: 10px;">
+                            Попробуйте обновить страницу через несколько минут
+                        </p>
+                    </div>
+                `;
+            }
+        }
+        fetchNews();
+
+        // --- МУЗЫКАЛЬНЫЙ ПЛЕЕР ---
+        const audioPlayer = {
+            el: document.getElementById('bg-audio'),
+            playing: false,
+            toggle() {
+                const bars = document.querySelectorAll('.bar');
+                if(!this.playing) {
+                    this.el.play();
+                    bars.forEach((b, i) => b.style.animationDelay = `${i * 0.1}s`);
+                    bars.forEach(b => b.style.display = 'block');
+                } else {
+                    this.el.pause();
+                    bars.forEach(b => b.style.display = 'none');
+                }
+                this.playing = !this.playing;
+                document.getElementById('t-music').innerText = this.playing ? "STOP MUSIC" : "PLAY MUSIC";
+            }
+        };
+
+        function toggleTheme() {
+            document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+        }
+
+        // ДОБАВЬ В КОНЕЦ СВОЕГО СКРИПТА:
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация при переключении вкладок
+            const originalSwitchTab = switchTab;
+            switchTab = function(tabId) {
+                originalSwitchTab(tabId);
+                
+                setTimeout(() => {
+                    switch(tabId) {
+                        case 'clock':
+                            setupTimeSearch();
+                            break;
+                        case 'finance':
+                            setupFinanceSearch();
+                            break;
+                        case 'weather':
+                            setupWeatherSearch();
+                            break;
+                    }
+                }, 100);
+            };
+            
+            // Инициализация при первой загрузке
+            if (document.getElementById('clock').classList.contains('active')) {
+                setupTimeSearch();
+            }
+        });
+    </script>
+</body>
+</html>
