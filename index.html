@@ -591,8 +591,10 @@
                     
                     try {
                         // Используем публичный прокси для timezonedb.com
+
+                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://worldtimeapi.org/api/timezone/${city.apiName}`)}`;
                         // const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`http://api.timezonedb.com/v2.1/get-time-zone?key=87HQH2WMAOI3&format=json&by=zone&zone=${city.apiName}`)}`;
-                        const proxyUrl = `https://smartapp-code.sberdevices.ru/tools/api/now?tz=${city.apiName}`
+                        // const proxyUrl = `https://smartapp-code.sberdevices.ru/tools/api/now?tz=${city.apiName}`
                         // Вместо реального ключа используем демо-режим (для теста)
                         // const response = await fetch(`https://api.timezonedb.com/v2.1/get-time-zone?key=87HQH2WMAOI3&format=json&by=zone&zone=${city.apiName}`);
                         
@@ -1978,7 +1980,6 @@
             try {
                 // Пробуем несколько вариантов API
                 const apis = [
-                    'https://ipapi.co/json/',
                     'https://ipinfo.io/json',
                     'https://geolocation-db.com/json/'
                 ];
@@ -2164,7 +2165,7 @@
                 for (const tz of timezones.slice(0, 30)) {
                     try {
                         // Получаем реальное время для каждого города
-                        const timeResponse = await fetch(`https://smartapp-code.sberdevices.ru/tools/api/now?tz=${tz.id}`);
+                        const timeResponse = await fetch(`https://worldtimeapi.org/api/timezone/${tz.id}`);
                         const timeData = await timeResponse.json();
                         
                         const time = new Date(timeData.datetime).toLocaleTimeString('ru-RU', {
@@ -2641,4 +2642,5 @@
         });
     </script>
 </body>
+
 </html>
