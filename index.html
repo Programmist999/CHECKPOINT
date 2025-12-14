@@ -2035,7 +2035,7 @@
 
             // 1. Определение местоположения пользователя (через IP)
             try {
-                const geoRes = await fetch('https://ipapi.co/json/');
+                const geoRes = await fetch('https://ipinfo.io/json');
                 const geoData = await geoRes.json();
                 const city = geoData.city || 'Москва';
                 document.getElementById('geo-city').innerText = city.toUpperCase();
@@ -2644,3 +2644,4 @@
 </body>
 
 </html>
+
